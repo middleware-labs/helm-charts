@@ -555,6 +555,20 @@ entries:
     version: 0.1.650
   mw-autoinstrumentation:
   - apiVersion: v2
+    created: "2025-07-23T18:12:32.454654003+05:30"
+    dependencies:
+    - condition: opentelemetry-operator.enabled
+      name: opentelemetry-operator
+      repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+      version: '*'
+    description: Middleware Auto-instrumentation Helm Chart
+    digest: 1cb8687ec3a4dc771e1b4370a279ce54d3a4ef09dc0fe782300c60ada7e32075
+    name: mw-autoinstrumentation
+    type: application
+    urls:
+    - https://github.com/middleware-labs/helm-charts/releases/download/mw-autoinstrumentation-1.0.1/mw-autoinstrumentation-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     created: "2025-06-25T15:32:08.600162321+05:30"
     dependencies:
     - condition: opentelemetry-operator.enabled
@@ -1167,4 +1181,4 @@ entries:
     urls:
     - https://github.com/middleware-labs/helm-charts/releases/download/mw-kube-agent-v3-1.0.0/mw-kube-agent-v3-1.0.0.tgz
     version: 1.0.0
-generated: "2025-06-25T10:30:47.222449521Z"
+generated: "2025-07-23T18:12:32.455051573+05:30"
