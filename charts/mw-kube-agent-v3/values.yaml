@@ -25,6 +25,8 @@ mw:
     enabled: false
     name: existing-secret
     key: existing-secret-key
+  autoinstrumentationNodeImage: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node:0.0.1
+  autoinstrumentationNodeAlpineImage: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine:0.0.1
 
 clusterMetadata:
   name: "unknown"
@@ -290,8 +292,8 @@ mw-autoinstrumentation:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-java"
           tag: "1.8.1"
         nodejs:
-          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
-          tag: "0.53.0"
+          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node"
+          tag: "0.0.1"
         python:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
           tag: "2.4.1-k8s"

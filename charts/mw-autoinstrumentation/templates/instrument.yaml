@@ -40,11 +40,16 @@ spec:
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
   nodejs:
+    image: {{ .Values.autoinstrumentationNodeImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node:0.0.1" }}
     env:
       - name: OTEL_NODE_DISABLED_INSTRUMENTATIONS
         value: fs,dns,net
       - name: OTEL_PROPAGATORS
         value: b3,tracecontext,baggage
+      - name: MW_API_KEY
+        value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+      - name: MW_AGENT_SERVICE
+        value: mw-service.{{ .Release.Namespace }}.svc.cluster.local
   go:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -71,3 +76,39 @@ spec:
         value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
+---
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: mw-autoinstrumentation-alpine
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- $skipPostUpgrade := and (not .Values.webhook.certManager.enabled) (.Release.IsUpgrade) }}
+    {{- if $skipPostUpgrade }}
+    "helm.sh/hook": post-install
+    {{- else }}
+    "helm.sh/hook": post-install,post-upgrade
+    {{- end }}
+    "helm.sh/hook-weight": "6"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  exporter:
+    endpoint: http://mw-service.{{ .Release.Namespace }}:9319
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1.0"
+  nodejs:
+    image: {{ .Values.mw.autoinstrumentationNodeAlpineImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine:0.0.1" }}
+    env:
+      - name: OTEL_NODE_DISABLED_INSTRUMENTATIONS
+        value: fs,dns,net
+      - name: OTEL_PROPAGATORS
+        value: b3,tracecontext,baggage
+      - name: MW_API_KEY
+        value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+      - name: MW_AGENT_SERVICE
+        value: mw-service.{{ .Release.Namespace }}.svc.cluster.local
