@@ -21,10 +21,10 @@ mw:
       tag: 0.1.2
     autoInjector:
       repository: ghcr.io/middleware-labs/mw-auto-injector
-      tag: 0.1.1
+      tag: 0.1.3
     langAggregator:
       repository: ghcr.io/middleware-labs/mw-lang-aggregator
-      tag: 0.1.0
+      tag: 0.1.1
   # Only used in case of lang detector 
   langAggregatorService:
     port: 8080

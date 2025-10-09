@@ -40,7 +40,7 @@ spec:
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
   nodejs:
-    image: {{ .Values.autoinstrumentationNodeImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node:0.0.1" }}
+    image: {{ .Values.autoinstrumentationNodeImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node:0.0.2" }}
     env:
       - name: OTEL_NODE_DISABLED_INSTRUMENTATIONS
         value: fs,dns,net
@@ -102,7 +102,7 @@ spec:
     type: parentbased_traceidratio
     argument: "1.0"
   nodejs:
-    image: {{ .Values.mw.autoinstrumentationNodeAlpineImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine:0.0.1" }}
+    image: {{ .Values.mw.autoinstrumentationNodeAlpineImage | default "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine:0.0.2" }}
     env:
       - name: OTEL_NODE_DISABLED_INSTRUMENTATIONS
         value: fs,dns,net
