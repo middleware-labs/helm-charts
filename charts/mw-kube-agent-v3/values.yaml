@@ -25,8 +25,6 @@ mw:
     enabled: false
     name: existing-secret
     key: existing-secret-key
-  autoinstrumentationNodeImage: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node:0.0.2
-  autoinstrumentationNodeAlpineImage: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine:0.0.2
 
 clusterMetadata:
   name: "unknown"
@@ -192,6 +190,12 @@ mw-autoinstrumentation:
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
         tag: 0.1.1
+      autoinstrumentationNode:
+        repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node
+        tag: 0.0.2
+      autoinstrumentationNodeAlpine:
+        repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine
+        tag: 0.0.2
     langAggregatorService:
       port: 8080
       targetPort: 8080
