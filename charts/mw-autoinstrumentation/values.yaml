@@ -21,7 +21,7 @@ mw:
       tag: 0.1.2
     autoInjector:
       repository: ghcr.io/middleware-labs/mw-auto-injector
-      tag: 0.1.3
+      tag: 0.2.0
     langAggregator:
       repository: ghcr.io/middleware-labs/mw-lang-aggregator
       tag: 0.1.1
