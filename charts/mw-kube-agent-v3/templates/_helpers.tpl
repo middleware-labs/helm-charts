@@ -51,6 +51,22 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Selector labels for OpsAI
+*/}}
+{{- define "opsai.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "mw-kube-agent.name" . }}-opsai
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Selector labels for Synthetic Monitoring
+*/}}
+{{- define "syntheticMonitoring.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "mw-kube-agent.name" . }}-synthetic-monitoring
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "mw-kube-agent.serviceAccountName" -}}
