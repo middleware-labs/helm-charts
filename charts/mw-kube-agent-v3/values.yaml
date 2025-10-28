@@ -193,10 +193,16 @@ mw-autoinstrumentation:
         tag: 0.1.2
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
-        tag: 0.1.1
+        tag: 0.2.0
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
-        tag: 0.1.0
+        tag: 0.1.1
+      autoinstrumentationNode:
+        repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node
+        tag: 0.0.2
+      autoinstrumentationNodeAlpine:
+        repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine
+        tag: 0.0.2
     langAggregatorService:
       port: 8080
       targetPort: 8080
@@ -297,8 +303,8 @@ mw-autoinstrumentation:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-java"
           tag: "1.8.1"
         nodejs:
-          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
-          tag: "0.53.0"
+          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node"
+          tag: "0.0.2"
         python:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
           tag: "2.4.1-k8s"

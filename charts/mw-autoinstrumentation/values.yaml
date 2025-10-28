@@ -21,10 +21,16 @@ mw:
       tag: 0.1.2
     autoInjector:
       repository: ghcr.io/middleware-labs/mw-auto-injector
-      tag: 0.1.1
+      tag: 0.2.0
     langAggregator:
       repository: ghcr.io/middleware-labs/mw-lang-aggregator
-      tag: 0.1.0
+      tag: 0.1.1
+    autoinstrumentationNode:
+      repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node
+      tag: 0.0.2
+    autoinstrumentationNodeAlpine:
+      repository: ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-node-alpine
+      tag: 0.0.2
   # Only used in case of lang detector 
   langAggregatorService:
     port: 8080
