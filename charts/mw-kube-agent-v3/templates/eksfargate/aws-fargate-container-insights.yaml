@@ -1,0 +1,8 @@
+{{- if and .Values.providers.eks.fargate.enabled .Values.providers.eks.fargate.containerInsights.enabled }}
+{{- if .Values.providers.eks.fargate.containerInsights.createNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fargate-container-insights
+{{- end }}
+{{- end }}
