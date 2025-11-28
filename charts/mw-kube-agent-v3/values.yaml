@@ -165,8 +165,6 @@ providers:
       containerInsights:
         enabled: false
         createNamespace: true # Set to false if fargate-container-insights namespace already exists
-  openshift:
-    enabled: false
 features:
   # For Kubelet based metrics i.e. k8s.pod.cpu.time, k8s.pod.cpu.utilization, etc.
   enableKubeletMetricsCollection: true

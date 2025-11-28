@@ -25,17 +25,6 @@ rules:
     resources: ["nodes/proxy"]
     verbs: ["get"]
   {{- end }}
-
-  {{- if .Values.providers.openshift.enabled }}
-  - apiGroups: ["quota.openshift.io"]
-    resources: ["clusterresourcequotas"]
-    verbs: ["get", "list", "watch"]
-  
-  - apiGroups: ["config.openshift.io"]
-    resources: ["infrastructures", "infrastructures/status"]
-    verbs: ["get", "watch", "list"]
-    
-  {{- end }}
   
   - apiGroups: ["apps"]
     resources: ["daemonsets", "deployments", "deployments/scale", "replicasets", "replicasets/scale", "statefulsets"]

@@ -87,18 +87,3 @@ Create the priority class name
 {{- default "default" .Values.priorityClass.name }}
 {{- end }}
 {{- end }}
-
-{{/*
-Detect the Kubernetes provider
-*/}}
-{{- define "mw-kube-agent.provider" -}}
-{{- if .Values.providers.openshift.enabled -}}
-openshift
-{{- else if .Values.providers.gke.autopilot -}}
-gke-autopilot
-{{- else if .Values.providers.eks.fargate.enabled -}}
-eks-fargate
-{{- else -}}
-kubernetes
-{{- end -}}
-{{- end -}}
