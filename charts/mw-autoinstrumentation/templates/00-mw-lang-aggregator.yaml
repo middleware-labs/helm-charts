@@ -33,6 +33,8 @@ spec:
                   fieldPath: spec.nodeName
             - name: MW_AUTOINSTRUMENTATION_SYNC_INTERVAL
               value: "2m"
+            - name: MW_AGGREGATOR_VERSION
+              value: {{ .Values.mw.images.langAggregator.tag }}
           resources:
             limits:
               cpu: 200m
