@@ -1,0 +1,38 @@
+{{- if .Values.ebpf.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "mw-kube-agent.name" . }}-ebpf
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: mw-ebpf
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "mw-kube-agent.name" . }}-ebpf
+  labels:
+    app.kubernetes.io/component: mw-ebpf
+rules:
+  - apiGroups: ['apps']
+    resources: ['replicasets']
+    verbs: ['list', 'watch']
+  - apiGroups: ['']
+    resources: ['pods', 'services', 'nodes']
+    verbs: ['list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "mw-kube-agent.name" . }}-ebpf
+  labels:
+    app.kubernetes.io/component: mw-ebpf
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "mw-kube-agent.name" . }}-ebpf
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "mw-kube-agent.name" . }}-ebpf
+{{- end }}

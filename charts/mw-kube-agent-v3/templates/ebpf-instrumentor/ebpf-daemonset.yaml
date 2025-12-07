@@ -1,0 +1,94 @@
+{{- if .Values.ebpf.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "mw-kube-agent.name" . }}-ebpf
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: mw-ebpf
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: mw-ebpf
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: mw-ebpf
+    spec:
+      hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: {{ include "mw-kube-agent.name" . }}-ebpf
+      {{- with .Values.ebpf.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ebpf.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: kernel-security
+          hostPath:
+            path: /sys/kernel/security
+        {{- if .Values.ebpf.config.enabled }}
+        - name: ebpf-config
+          configMap:
+            name: {{ include "mw-kube-agent.name" . }}-ebpf-config
+        {{- end }}
+      {{- with .Values.ebpf.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: ebpf-autoinstrument
+          image: "{{ .Values.ebpf.image.repository }}:{{ .Values.ebpf.image.tag }}"
+          imagePullPolicy: {{ .Values.ebpf.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+            - name: kernel-security
+              mountPath: /sys/kernel/security
+              readOnly: true
+            {{- if .Values.ebpf.config.enabled }}
+            - name: ebpf-config
+              mountPath: /config
+              readOnly: true
+            {{- end }}
+          env:
+            {{- if .Values.ebpf.config.enabled }}
+            - name: OTEL_EBPF_CONFIG_PATH
+              value: "/config/obi-config.yml"
+            {{- end }}
+        
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://mw-service.{{ .Release.Namespace }}:9320
+            - name: OTEL_EBPF_KUBE_CLUSTER_NAME
+              value: {{ or .Values.global.clusterMetadata.name .Values.clusterMetadata.name | quote }}
+            {{- if .Values.ebpf.kubeMetadata.enabled }}
+            - name: OTEL_EBPF_KUBE_METADATA_ENABLE
+              value: "true"
+            {{- end }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "http/protobuf"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            - name: OTEL_TRACES_EXPORTER
+              value: "otlp"
+            {{- if .Values.ebpf.distributedTracing }}
+            - name: OTEL_EBPF_BPF_CONTEXT_PROPAGATION
+              value: "all"
+            {{- end }}
+            {{- with .Values.ebpf.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}     
+          {{- with .Values.ebpf.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

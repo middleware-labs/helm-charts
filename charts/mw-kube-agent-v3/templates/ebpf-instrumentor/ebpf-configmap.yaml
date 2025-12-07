@@ -1,0 +1,35 @@
+{{- if .Values.ebpf.enabled }}
+{{- if .Values.ebpf.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mw-kube-agent.name" . }}-ebpf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: mw-ebpf
+data:
+  obi-config.yml: |
+    attributes:
+      kubernetes:
+        enable: {{ .Values.ebpf.config.attributes.kubernetes.enable }}
+    routes:
+      unmatched: {{ .Values.ebpf.config.routes.unmatched }}
+    {{- if .Values.ebpf.config.discovery.services }}
+    discovery:
+      instrument:
+        {{- range .Values.ebpf.config.discovery.services }}
+        - k8s_deployment_name: {{ . | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.ebpf.config.tracePrinter }}
+    trace_printer: {{ .Values.ebpf.config.tracePrinter }}
+    {{- end }}
+    ebpf:
+      enable_context_propagation: {{ .Values.ebpf.config.ebpfSettings.enableContextPropagation }}
+      {{- if .Values.ebpf.config.ebpfSettings.trafficControlBackend }}
+      traffic_control_backend: {{ .Values.ebpf.config.ebpfSettings.trafficControlBackend }}
+      {{- end }}
+      disable_blackbox_cp: {{ .Values.ebpf.config.ebpfSettings.disableBlackboxCp }}
+      track_request_headers: {{ .Values.ebpf.config.ebpfSettings.trackRequestHeaders }}
+{{- end }}
+{{- end }}
