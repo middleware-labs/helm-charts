@@ -190,13 +190,13 @@ mw-autoinstrumentation:
       pullPolicy: IfNotPresent
       langDetector:
         repository: ghcr.io/middleware-labs/mw-lang-detector
-        tag: 0.1.2
+        tag: 0.1.5
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
-        tag: 0.1.1
+        tag: 0.2.1
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
-        tag: 0.1.0
+        tag: 0.1.4
     langAggregatorService:
       port: 8080
       targetPort: 8080
@@ -294,8 +294,8 @@ mw-autoinstrumentation:
         tag: ""
       autoInstrumentationImage:
         java:
-          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-java"
-          tag: "1.8.1"
+          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java"
+          tag: "2.19.0"
         nodejs:
           repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
           tag: "0.53.0"
