@@ -37,13 +37,9 @@ spec:
             - name: MW_OPSAI_API_URL
               value: {{ .Values.opsai.pulsarHost }}
             - name: MW_OPSAI_UNSUBSCRIBE_ENDPOINT
-              value: {{ .Values.opsai.unsubscribeEndpoint }}
+              value: {{ replace "app" (regexReplaceAll "^https://([^\\.]+).*" .Values.global.mw.target "$1") .Values.opsai.unsubscribeEndpoint }}
             - name: ACCOUNT_UID
               value: {{ regexReplaceAll "^https://([^\\.]+).*" .Values.global.mw.target "$1" | quote }}
-            - name: MW_AGENT_FEATURES_SYNTHETIC_MONITORING
-              value: {{ .Values.syntheticMonitoring.enabled | quote }}
-            - name: MW_API_URL_FOR_SYNTHETIC_MONITORING
-              value: {{ .Values.syntheticMonitoring.url }}
             {{- if .Values.mw.apiKeyFromExistingSecret.enabled }}
             - name: MW_API_KEY
               valueFrom:
