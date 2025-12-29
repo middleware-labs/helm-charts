@@ -185,6 +185,7 @@ mw-autoinstrumentation:
   mode: "auto"  # Options: "auto" or "manual"
   # Skip SELinux process label operations that may fail on read-only /proc
   skipSELinuxLabeling: true  # Default: true to avoid the error
+  skipPostInstallJob: false # Default: false to run the post-install job to wait for operator to be ready
   mw:
     images:
       pullPolicy: IfNotPresent
