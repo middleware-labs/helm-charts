@@ -1,4 +1,4 @@
-{{- if .Values.skipPostInstallJob }}
+{{- if not .Values.skipPostInstallJob }}
 apiVersion: batch/v1
 kind: Job
 metadata:

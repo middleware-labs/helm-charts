@@ -1,5 +1,5 @@
 
-{{- if .Values.skipPostInstallJob }}
+{{- if not .Values.skipPostInstallJob }}
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
