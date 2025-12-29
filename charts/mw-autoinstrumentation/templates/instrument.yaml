@@ -1,4 +1,5 @@
 
+{{- if .Values.skipPostInstallJob }}
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
@@ -71,3 +72,4 @@ spec:
         value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
+{{- end }}
