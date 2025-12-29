@@ -38,7 +38,7 @@ spec:
             - name: MW_NAMESPACE
               value: {{ .Release.Namespace | quote }}
             - name: MW_API_URL_FOR_CONFIG_CHECK
-              value: {{ .Values.mw.apiUrlForConfigCheck }}
+              value: {{ (replace ":443" "" (or .Values.global.mw.target .Values.mw.target .Values.mw.apiUrlForConfigCheck)) }}
             - name: MW_CONFIG_CHECK_INTERVAL
               value: {{ .Values.mw.configCheckInterval }}
             - name: MW_ENABLE_DATADOG_RECEIVER
