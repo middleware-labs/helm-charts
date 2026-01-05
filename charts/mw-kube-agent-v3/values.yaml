@@ -35,19 +35,19 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.1
+  tag: 1.18.2
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.1
+  tag: 1.18.2
 
 syntheticMonitoring:
   name: synthetics
   repository: ghcr.io/middleware-labs/mw-synthetics
   pullPolicy: IfNotPresent
-  tag: 1.18.1
+  tag: 1.18.2
   enabled: false
   url: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe
@@ -56,7 +56,7 @@ opsai:
   name: opsai
   repository: ghcr.io/middleware-labs/mw-opsai
   pullPolicy: IfNotPresent
-  tag: 1.18.1
+  tag: 1.18.2
   enabled: false
   pulsarHost: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe 
@@ -185,7 +185,6 @@ mw-autoinstrumentation:
   mode: "auto"  # Options: "auto" or "manual"
   # Skip SELinux process label operations that may fail on read-only /proc
   skipSELinuxLabeling: true  # Default: true to avoid the error
-  skipPostInstallJob: false # Default: false to run the post-install job to wait for operator to be ready
   mw:
     images:
       pullPolicy: IfNotPresent
