@@ -71,4 +71,10 @@ rules:
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["servicemonitors", "podmonitors", "probes", "scrapeconfigs"]
     verbs: ["*"]
+  
+  {{- if .Values.features.enableCustomResourceCollection }}
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
 {{- end }}
