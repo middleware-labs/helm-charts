@@ -190,13 +190,13 @@ mw-autoinstrumentation:
       pullPolicy: IfNotPresent
       langDetector:
         repository: ghcr.io/middleware-labs/mw-lang-detector
-        tag: 0.1.5
+        tag: 0.1.7
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
         tag: 0.2.1
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
-        tag: 0.1.4
+        tag: 0.1.6
     langAggregatorService:
       port: 8080
       targetPort: 8080
