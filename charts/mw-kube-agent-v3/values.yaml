@@ -35,19 +35,19 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.2
+  tag: 1.18.4
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.2
+  tag: 1.18.4
 
 syntheticMonitoring:
   name: synthetics
   repository: ghcr.io/middleware-labs/mw-synthetics
   pullPolicy: IfNotPresent
-  tag: 1.18.2
+  tag: 1.18.4
   enabled: false
   url: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe
@@ -56,7 +56,7 @@ opsai:
   name: opsai
   repository: ghcr.io/middleware-labs/mw-opsai
   pullPolicy: IfNotPresent
-  tag: 1.18.2
+  tag: 1.18.4
   enabled: false
   pulsarHost: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe 
