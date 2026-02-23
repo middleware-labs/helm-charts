@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: mw-kube-agent-config-updater
-  namespace: "mw-agent-ns"
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:

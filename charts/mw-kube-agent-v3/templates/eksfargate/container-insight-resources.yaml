@@ -92,6 +92,14 @@ data:
                 target_label: systemd_service_name
                 replacement: '$${1}'
     processors:
+      resource/mw:
+        attributes:
+          - action: upsert
+            key: mw.resource_type
+            value: custom
+          - action: upsert
+            key: server.port
+            value: '8888'
       # rename labels which apply to all metrics and are used in metricstransform/rename processor
       metricstransform/label_1:
         transforms:
@@ -461,7 +469,7 @@ data:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: [metricstransform/label_1, resourcedetection, metricstransform/rename, filter, cumulativetodelta, deltatorate, metricsgeneration/1, metricsgeneration/2, metricstransform/label_2, batch]
+          processors: [metricstransform/label_1, resourcedetection, metricstransform/rename, filter, cumulativetodelta, deltatorate, metricsgeneration/1, metricsgeneration/2, metricstransform/label_2, ,resource/mw, batch]
           exporters: [otlphttp/2]
       extensions: [health_check]
 
