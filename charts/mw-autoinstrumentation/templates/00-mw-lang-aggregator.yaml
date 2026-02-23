@@ -36,18 +36,27 @@ spec:
             - name: MW_AGGREGATOR_VERSION
               value: {{ .Values.mw.images.langAggregator.tag }}
           resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi  
+          {{- toYaml .Values.langAggregator.resources | nindent 12 }}  
           image: {{ .Values.mw.images.langAggregator.repository }}:{{ .Values.mw.images.langAggregator.tag }}
           imagePullPolicy: {{ .Values.mw.images.pullPolicy }}
           name: mw-lang-aggregator
-          resources: {}
       restartPolicy: Always
       serviceAccountName: mw-lang-detector
+      {{- with .Values.langAggregator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.langAggregator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.langAggregator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.langAggregator.priorityClassName }}
+      priorityClassName: {{ .Values.langAggregator.priorityClassName }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service

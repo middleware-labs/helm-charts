@@ -34,7 +34,52 @@ mw:
 
 clusterDomain: cluster.local
 
+langDetector:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  userExcludedNamespaces: []
+  nodeSelector: {}
+  tolerations:
+    - operator: Exists
+      effect: NoSchedule
+    - operator: Exists
+      effect: NoExecute
+  affinity: {}
+  priorityClassName: ""
+
+langAggregator:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  priorityClassName: ""
+
 webhook:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations:
+    - key: acme.com/lifespan-remaining
+      operator: Exists
+      effect: NoSchedule
+  affinity: {}
+  priorityClassName: ""
   certManager:
     enabled: true
   autoGenerateCert:
