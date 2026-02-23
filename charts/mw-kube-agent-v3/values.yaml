@@ -188,7 +188,8 @@ mw-autoinstrumentation:
   #   Disables automatic detection, users must add OpenTelemetry annotations to their deployments
   mode: "auto" # Options: "auto" or "manual"
   # Skip SELinux process label operations that may fail on read-only /proc
-  skipSELinuxLabeling: true # Default: true to avoid the error
+  skipSELinuxLabeling: true  # Default: true to avoid the error
+  skipPostInstallJob: false
   mw:
     images:
       pullPolicy: IfNotPresent
@@ -214,7 +215,52 @@ mw-autoinstrumentation:
 
   clusterDomain: cluster.local
 
+  langDetector:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    userExcludedNamespaces: []
+    nodeSelector: {}
+    tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      - operator: Exists
+        effect: NoExecute
+    affinity: {}
+    priorityClassName: ""
+
+  langAggregator:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    priorityClassName: ""
+
   webhook:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelector: {}
+    tolerations:
+      - key: acme.com/lifespan-remaining
+        operator: Exists
+        effect: NoSchedule
+    affinity: {}
+    priorityClassName: ""
     certManager:
       enabled: true
     autoGenerateCert:
