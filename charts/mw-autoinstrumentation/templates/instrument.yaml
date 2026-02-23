@@ -37,7 +37,10 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://mw-service.{{ .Release.Namespace }}:9320
       - name: MW_API_KEY
-        value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+        valueFrom:
+          secretKeyRef:
+            name: middleware-secret
+            key: api-key
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
   nodejs:
@@ -69,7 +72,10 @@ spec:
       - name: OTEL_EXPORTER_OTLP_PROTOCOL
         value: grpc
       - name: MW_API_KEY
-        value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+        valueFrom:
+          secretKeyRef:
+            name: middleware-secret
+            key: api-key
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
 {{- end }}

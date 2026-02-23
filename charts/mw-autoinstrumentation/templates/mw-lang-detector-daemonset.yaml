@@ -23,7 +23,10 @@ spec:
           - name: MW_TARGET
             value: {{ or .Values.global.mw.target "XXXXXX" | quote }}
           - name: MW_API_KEY
-            value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+            valueFrom:
+              secretKeyRef:
+                name: middleware-secret
+                key: api-key
           - name: MW_KUBE_CLUSTER_NAME
             value: {{ or .Values.global.clusterMetadata.name "unknown" | quote }}
           - name: MW_RELEASE_NAMESPACE
@@ -34,13 +37,12 @@ spec:
                 fieldPath: spec.nodeName
           - name: MW_API_URL_FOR_LANG_AGGREGATOR
             value: "http://mw-lang-aggregator.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.mw.langAggregatorService.port }}"
+          {{- if .Values.langDetector.userExcludedNamespaces }}
+          - name: MW_USER_EXCLUDED_NAMESPACES
+            value: {{ join "," .Values.langDetector.userExcludedNamespaces | quote }}
+          {{- end }}
         resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi        
+        {{- toYaml .Values.langDetector.resources | nindent 12 }}      
         securityContext:
           privileged: true
         volumeMounts:
@@ -54,6 +56,21 @@ spec:
       securityContext:
         runAsUser: 0
       serviceAccountName: mw-lang-detector
+      {{- with .Values.langDetector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.langDetector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.langDetector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.langDetector.priorityClassName }}
+      priorityClassName: {{ .Values.langDetector.priorityClassName }}
+      {{- end }}
       volumes:
       - hostPath:
           path: /proc

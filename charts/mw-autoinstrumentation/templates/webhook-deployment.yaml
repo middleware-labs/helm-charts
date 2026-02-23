@@ -16,10 +16,6 @@ spec:
       labels:
         app: mw-auto-injector
     spec:
-      tolerations:
-        - key: acme.com/lifespan-remaining
-          operator: Exists
-          effect: NoSchedule
       containers:
         - image: {{ .Values.mw.images.autoInjector.repository }}:{{ .Values.mw.images.autoInjector.tag }}
           imagePullPolicy: {{ .Values.mw.images.pullPolicy }}
@@ -34,22 +30,35 @@ spec:
             - name: MW_TARGET
               value: {{ or .Values.global.mw.target "XXXXXX" | quote }}
             - name: MW_API_KEY
-              value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: middleware-secret
+                  key: api-key
             - name: MW_KUBE_CLUSTER_NAME
               value: {{ or .Values.global.clusterMetadata.name "unknown" | quote }}
             - name: MW_RELEASE_NAMESPACE
               value: {{ .Release.Namespace }}
           resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi      
+          {{- toYaml .Values.webhook.resources | nindent 12 }}      
           volumeMounts:
             - name: tls
               mountPath: "/etc/admission-webhook/tls"
               readOnly: true
+      {{- with .Values.webhook.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webhook.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webhook.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.webhook.priorityClassName }}
+      priorityClassName: {{ .Values.webhook.priorityClassName }}
+      {{- end }}
       volumes:
         - name: tls
           secret:
