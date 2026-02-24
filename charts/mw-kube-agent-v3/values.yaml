@@ -121,20 +121,26 @@ service:
 
 daemonset:
   name: mw-kube-agent
+  resources:
+    requests:
+      cpu: "200m" # Default CPU request
+      memory: "256Mi" # Default memory request
+    limits:
+      cpu: "500m" # Default CPU limit
+      memory: "512Mi" # Default memory limit
   configMap:
     name: mw-daemonset-otel-config
 deployment:
   name: mw-kube-agent
+  resources:
+    requests:
+      cpu: "200m" # Default CPU request
+      memory: "256Mi" # Default memory request
+    limits:
+      cpu: "1000m" # Default CPU limit
+      memory: "1024Mi" # Default memory limit
   configMap:
     name: mw-deployment-otel-config
-
-resources:
-  requests:
-    cpu: "200m" # Default CPU request
-    memory: "256Mi" # Default memory request
-  limits:
-    cpu: "500m" # Default CPU limit
-    memory: "512Mi" # Default memory limit
 
 priorityClass:
   # Specifies whether a priorityClass should be created
@@ -197,7 +203,7 @@ mw-autoinstrumentation:
       pullPolicy: IfNotPresent
       langDetector:
         repository: ghcr.io/middleware-labs/mw-lang-detector
-        tag: 0.1.7
+        tag: 0.1.9
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
         tag: 0.2.1
@@ -352,8 +358,8 @@ mw-autoinstrumentation:
           repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
           tag: "0.53.0"
         python:
-          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
-          tag: "2.4.1-k8s"
+          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.59b0"
+          tag: "0.59b0"
         dotnet:
           repository: ""
           tag: ""
@@ -363,8 +369,8 @@ mw-autoinstrumentation:
         # The Go instrumentation support in the operator is disabled by default.
         # To enable it, use the operator.autoinstrumentation.go feature gate.
         go:
-          repository: "ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go"
-          tag: "v0.21.0"
+          repository: "ghcr.io/middleware-labs/opentelemetry-go-instrumentation/autoinstrumentation-go"
+          tag: "v0.24.0"
       # To enable Go instrumentation, manager.autoInstrumentation.go.enabled must be set to true
       autoInstrumentation:
         go:
