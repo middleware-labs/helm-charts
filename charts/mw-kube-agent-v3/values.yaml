@@ -105,7 +105,7 @@ clusterRoleBinding:
 
 service:
   name: mw-service
-  type: NodePort
+  type: ClusterIP
   grpc:
     port: 9319
     targetPort: 9319
