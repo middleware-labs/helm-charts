@@ -358,7 +358,7 @@ mw-autoinstrumentation:
           repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
           tag: "0.53.0"
         python:
-          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.59b0"
+          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python"
           tag: "0.59b0"
         dotnet:
           repository: ""
