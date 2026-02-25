@@ -50,8 +50,8 @@ syntheticMonitoring:
   tag: 1.18.4
   enabled: false
   url: wss://app.middleware.io:443/plsrws/v2
-  unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe
-  
+  unsubscribeEndpoint: https://app.middleware.io/api/v1/synthetics/unsubscribe
+
 opsai:
   name: opsai
   repository: ghcr.io/middleware-labs/mw-opsai
@@ -59,7 +59,7 @@ opsai:
   tag: 1.18.4
   enabled: false
   pulsarHost: wss://app.middleware.io:443/plsrws/v2
-  unsubscribeEndpoint : https://app.middleware.io/api/v1/synthetics/unsubscribe 
+  unsubscribeEndpoint: https://app.middleware.io/api/v1/synthetics/unsubscribe
   serviceAccount:
     create: true
     annotations: {}
@@ -105,7 +105,7 @@ clusterRoleBinding:
 
 service:
   name: mw-service
-  type: NodePort
+  type: ClusterIP
   grpc:
     port: 9319
     targetPort: 9319
@@ -121,20 +121,26 @@ service:
 
 daemonset:
   name: mw-kube-agent
+  resources:
+    requests:
+      cpu: "200m" # Default CPU request
+      memory: "256Mi" # Default memory request
+    limits:
+      cpu: "500m" # Default CPU limit
+      memory: "512Mi" # Default memory limit
   configMap:
     name: mw-daemonset-otel-config
 deployment:
   name: mw-kube-agent
+  resources:
+    requests:
+      cpu: "200m" # Default CPU request
+      memory: "256Mi" # Default memory request
+    limits:
+      cpu: "1000m" # Default CPU limit
+      memory: "1024Mi" # Default memory limit
   configMap:
     name: mw-deployment-otel-config
-
-resources:
-  requests:
-    cpu: "200m" # Default CPU request
-    memory: "256Mi" # Default memory request
-  limits:
-    cpu: "500m" # Default CPU limit
-    memory: "512Mi" # Default memory limit
 
 priorityClass:
   # Specifies whether a priorityClass should be created
@@ -158,11 +164,15 @@ providers:
   eks:
     fargate:
       enabled: false
-      createNamespace: true  # Set to false if namespace already exists
+      createNamespace: true # Set to false if aws-observability namespace already exists
       logRouter:
         enabled: false
         createConfigMap: true # Set to false if custom Configmap already exists
-
+      containerInsights:
+        enabled: false
+        createNamespace: true # Set to false if fargate-container-insights namespace already exists
+  openshift:
+    enabled: false
 features:
   # For Kubelet based metrics i.e. k8s.pod.cpu.time, k8s.pod.cpu.utilization, etc.
   enableKubeletMetricsCollection: true
@@ -180,22 +190,23 @@ features:
 mw-autoinstrumentation:
   enabled: false
   # Instrumentation mode - determines how applications are instrumented
-  # - "auto": Automatic language detection and injection (default) and supports manual injection also in case for custom requirements or lang not detected 
+  # - "auto": Automatic language detection and injection (default) and supports manual injection also in case for custom requirements or lang not detected
   #   Uses language detector to scan pods and automatically inject appropriate instrumentation
   # - "manual": Annotation-driven instrumentation only
   #   Disables automatic detection, users must add OpenTelemetry annotations to their deployments
-  mode: "auto"  # Options: "auto" or "manual"
+  mode: "auto" # Options: "auto" or "manual"
   # Skip SELinux process label operations that may fail on read-only /proc
   skipSELinuxLabeling: true  # Default: true to avoid the error
+  skipPostInstallJob: false
   mw:
     images:
       pullPolicy: IfNotPresent
       langDetector:
         repository: ghcr.io/middleware-labs/mw-lang-detector
-        tag: 0.1.7
+        tag: 0.1.9
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
-        tag: 0.2.1
+        tag: 0.2.2
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
         tag: 0.1.6
@@ -212,7 +223,52 @@ mw-autoinstrumentation:
 
   clusterDomain: cluster.local
 
+  langDetector:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    userExcludedNamespaces: []
+    nodeSelector: {}
+    tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      - operator: Exists
+        effect: NoExecute
+    affinity: {}
+    priorityClassName: ""
+
+  langAggregator:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    priorityClassName: ""
+
   webhook:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelector: {}
+    tolerations:
+      - key: acme.com/lifespan-remaining
+        operator: Exists
+        effect: NoSchedule
+    affinity: {}
+    priorityClassName: ""
     certManager:
       enabled: true
     autoGenerateCert:
@@ -302,8 +358,8 @@ mw-autoinstrumentation:
           repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
           tag: "0.53.0"
         python:
-          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
-          tag: "2.4.1-k8s"
+          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python"
+          tag: "0.59b0"
         dotnet:
           repository: ""
           tag: ""
@@ -313,8 +369,8 @@ mw-autoinstrumentation:
         # The Go instrumentation support in the operator is disabled by default.
         # To enable it, use the operator.autoinstrumentation.go feature gate.
         go:
-          repository: "ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go"
-          tag: "v0.21.0"
+          repository: "ghcr.io/middleware-labs/opentelemetry-go-instrumentation/autoinstrumentation-go"
+          tag: "v0.24.0"
       # To enable Go instrumentation, manager.autoInstrumentation.go.enabled must be set to true
       autoInstrumentation:
         go:

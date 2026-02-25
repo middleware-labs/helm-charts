@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: mw-kube-agent-config-updater
-  namespace: "mw-agent-ns"
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
@@ -43,6 +43,8 @@ spec:
               value: {{ .Values.mw.configCheckInterval }}
             - name: MW_ENABLE_DATADOG_RECEIVER
               value: {{ .Values.mw.enableDatadogReceiver | quote }}
+            - name: MW_PROVIDER
+              value: {{ include "mw-kube-agent.provider" . | quote }}
           image: "{{ .Values.configUpdaterImage.repository }}:{{ .Values.configUpdaterImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.configUpdaterImage.pullPolicy }}
           name: mw-kube-agent-config-updater

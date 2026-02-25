@@ -1,6 +1,6 @@
 dependencies:
 - name: mw-autoinstrumentation
   repository: https://helm.middleware.io
-  version: 1.2.2
-digest: sha256:0fe91fed74959c65c4fd570c2d0332d9998f112fa53f942877a09121535be35b
-generated: "2025-12-29T19:44:22.705072+05:30"
+  version: 1.2.4
+digest: sha256:cb294efdbc7478bb09485c987ded290e66ab9296ee3492395efaf5a6638f9362
+generated: "2026-02-24T15:13:39.11900986+05:30"

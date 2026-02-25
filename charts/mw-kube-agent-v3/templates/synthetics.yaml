@@ -7,11 +7,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      {{- include ".Values.selectorLabels" . | nindent 6 }}
+      {{- include "syntheticMonitoring.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include ".Values.selectorLabels" . | nindent 8 }}
+        {{- include "syntheticMonitoring.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - args:
