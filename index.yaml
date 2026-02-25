@@ -1132,6 +1132,22 @@ entries:
     version: 2.0.0
   mw-kube-agent-v3:
   - apiVersion: v2
+    appVersion: 0.1.23
+    created: "2026-02-25T05:34:52.022767636Z"
+    dependencies:
+    - alias: mw-autoinstrumentation
+      condition: mw-autoinstrumentation.enabled
+      name: mw-autoinstrumentation
+      repository: https://helm.middleware.io
+      version: 1.2.4
+    description: A Helm chart for Kubernetes
+    digest: 96517b0d4b3c7edb0dbf813f3a1066218cb9781b92b4a426e41958a105055686
+    name: mw-kube-agent-v3
+    type: application
+    urls:
+    - https://github.com/middleware-labs/helm-charts/releases/download/mw-kube-agent-v3-1.6.8/mw-kube-agent-v3-1.6.8.tgz
+    version: 1.6.8
+  - apiVersion: v2
     appVersion: 0.1.22
     created: "2026-02-03T09:18:33.60586027Z"
     dependencies:
@@ -1643,4 +1659,4 @@ entries:
     urls:
     - https://github.com/middleware-labs/helm-charts/releases/download/mw-kube-agent-v3-1.0.0/mw-kube-agent-v3-1.0.0.tgz
     version: 1.0.0
-generated: "2026-02-24T09:36:03.240432671Z"
+generated: "2026-02-25T05:34:52.023160589Z"
