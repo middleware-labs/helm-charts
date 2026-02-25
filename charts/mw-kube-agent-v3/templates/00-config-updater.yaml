@@ -35,7 +35,7 @@ spec:
             {{- end }}
             - name: MW_KUBE_CLUSTER_NAME
               value: {{ or .Values.global.clusterMetadata.name .Values.clusterMetadata.name }}
-            - name: MW_NAMESPACE
+            - name: MW_NAMESPACE_NAME
               value: {{ .Release.Namespace | quote }}
             - name: MW_API_URL_FOR_CONFIG_CHECK
               value: {{ (replace ":443" "" (or .Values.global.mw.target .Values.mw.target .Values.mw.apiUrlForConfigCheck)) }}
