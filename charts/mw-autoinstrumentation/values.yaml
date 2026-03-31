@@ -35,6 +35,10 @@ mw:
 clusterDomain: cluster.local
 
 langDetector:
+  # Deployment mode for language detector
+  # - "standalone": Runs as separate DaemonSet (default, more isolation)
+  # - "sidecar": Runs as sidecar in mw-kube-agent DaemonSet (fewer pods, less overhead)
+  deploymentMode: "standalone"  # Options: "standalone" or "sidecar"
   resources:
     limits:
       cpu: 200m

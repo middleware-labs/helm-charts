@@ -25,6 +25,7 @@ rules:
   - replicasets
   - replicasets/scale
   - statefulsets
+  - controllerrevisions
   verbs:
   - get
   - list
