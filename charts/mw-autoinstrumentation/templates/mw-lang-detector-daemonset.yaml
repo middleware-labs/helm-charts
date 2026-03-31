@@ -1,4 +1,4 @@
-{{- if eq .Values.mode "auto" }}
+{{- if and (eq .Values.mode "auto") (eq .Values.langDetector.deploymentMode "standalone") }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -36,7 +36,7 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           - name: MW_API_URL_FOR_LANG_AGGREGATOR
-            value: "http://mw-lang-aggregator.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.mw.langAggregatorService.port }}"
+            value: "http://mw-lang-aggregator.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ (index .Values "mw").langAggregatorService.port }}"
           {{- if .Values.langDetector.userExcludedNamespaces }}
           - name: MW_USER_EXCLUDED_NAMESPACES
             value: {{ join "," .Values.langDetector.userExcludedNamespaces | quote }}
