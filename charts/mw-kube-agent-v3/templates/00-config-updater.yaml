@@ -47,6 +47,10 @@ spec:
               value: {{ .Values.mw.enableDatadogReceiver | quote }}
             - name: MW_PROVIDER
               value: {{ include "mw-kube-agent.provider" . | quote }}
+            - name: MW_DEPLOYMENT_NAME
+              value: {{ .Values.deployment.name | quote }}
+            - name: MW_DAEMONSET_NAME
+              value: {{ .Values.daemonset.name | quote }}
           image: "{{ .Values.configUpdaterImage.repository }}:{{ .Values.configUpdaterImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.configUpdaterImage.pullPolicy }}
           name: mw-kube-agent-config-updater

@@ -43,6 +43,8 @@ spec:
       {{- if .Values.features.enableHostMonitoring }}
       hostNetwork: true
       hostPID: true
+      {{- else if and ((index .Values "mw-autoinstrumentation").enabled) (eq (index .Values "mw-autoinstrumentation").mode "auto") (eq (index .Values "mw-autoinstrumentation").langDetector.deploymentMode "sidecar") }}
+      hostPID: true
       {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       volumes:
@@ -72,7 +74,52 @@ spec:
         hostPath:
           path: /var/lib/docker/containers
       {{- end }}
+      {{- if and ((index .Values "mw-autoinstrumentation").enabled) (eq (index .Values "mw-autoinstrumentation").mode "auto") (eq (index .Values "mw-autoinstrumentation").langDetector.deploymentMode "sidecar") }}
+      - name: proc
+        hostPath:
+          path: /proc
+      {{- end }}
       containers:
+        {{- if and ((index .Values "mw-autoinstrumentation").enabled) (eq (index .Values "mw-autoinstrumentation").mode "auto") (eq (index .Values "mw-autoinstrumentation").langDetector.deploymentMode "sidecar") }}
+        - image: {{ (index .Values "mw-autoinstrumentation").mw.images.langDetector.repository }}:{{ (index .Values "mw-autoinstrumentation").mw.images.langDetector.tag }}
+          imagePullPolicy: {{ (index .Values "mw-autoinstrumentation").mw.images.pullPolicy }}
+          name: mw-lang-detector
+          command: ["/app/mw-lang-detector"]
+          args: ["start"]
+          env:
+            - name: MW_TARGET
+              value: {{ or .Values.global.mw.target .Values.mw.target | quote }}
+            - name: MW_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: middleware-secret
+                  key: api-key
+            - name: MW_KUBE_CLUSTER_NAME
+              value: {{ or .Values.global.clusterMetadata.name .Values.clusterMetadata.name | quote }}
+            - name: MW_RELEASE_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MW_API_URL_FOR_LANG_AGGREGATOR
+              value: "http://mw-lang-aggregator.{{ .Release.Namespace }}.svc.{{ (index .Values "mw-autoinstrumentation").clusterDomain }}:{{ (index .Values "mw-autoinstrumentation").mw.langAggregatorService.port }}"
+            {{- if (index .Values "mw-autoinstrumentation").langDetector.userExcludedNamespaces }}
+            - name: MW_USER_EXCLUDED_NAMESPACES
+              value: {{ join "," (index .Values "mw-autoinstrumentation").langDetector.userExcludedNamespaces | quote }}
+            {{- end }}
+          resources:
+          {{- toYaml (index .Values "mw-autoinstrumentation").langDetector.resources | nindent 12 }}
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /proc
+            mountPropagation: None
+            name: proc
+            {{- if (index .Values "mw-autoinstrumentation").skipSELinuxLabeling }}
+            readOnly: true
+            {{- end }}
+        {{- end }}
         - args:
           - mw-agent
           - start

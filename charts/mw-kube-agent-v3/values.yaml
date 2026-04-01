@@ -35,19 +35,19 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.4
+  tag: 1.19.1
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.18.4
+  tag: 1.19.1
 
 syntheticMonitoring:
   name: synthetics
   repository: ghcr.io/middleware-labs/mw-synthetics
   pullPolicy: IfNotPresent
-  tag: 1.18.4
+  tag: 1.19.1
   enabled: false
   url: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint: https://app.middleware.io/api/v1/synthetics/unsubscribe
@@ -56,7 +56,7 @@ opsai:
   name: opsai
   repository: ghcr.io/middleware-labs/mw-opsai
   pullPolicy: IfNotPresent
-  tag: 1.18.4
+  tag: 1.19.1
   enabled: false
   pulsarHost: wss://app.middleware.io:443/plsrws/v2
   unsubscribeEndpoint: https://app.middleware.io/api/v1/synthetics/unsubscribe
@@ -120,7 +120,7 @@ service:
     targetPort: 13133
 
 daemonset:
-  name: mw-kube-agent
+  name: mw-agent
   resources:
     requests:
       cpu: "200m" # Default CPU request
@@ -131,7 +131,7 @@ daemonset:
   configMap:
     name: mw-daemonset-otel-config
 deployment:
-  name: mw-kube-agent
+  name: mw-cluster-agent
   resources:
     requests:
       cpu: "200m" # Default CPU request
@@ -203,13 +203,13 @@ mw-autoinstrumentation:
       pullPolicy: IfNotPresent
       langDetector:
         repository: ghcr.io/middleware-labs/mw-lang-detector
-        tag: 0.1.9
+        tag: 0.2.1
       autoInjector:
         repository: ghcr.io/middleware-labs/mw-auto-injector
-        tag: 0.2.2
+        tag: 0.2.5
       langAggregator:
         repository: ghcr.io/middleware-labs/mw-lang-aggregator
-        tag: 0.1.6
+        tag: 0.1.8
     langAggregatorService:
       port: 8080
       targetPort: 8080
@@ -224,6 +224,10 @@ mw-autoinstrumentation:
   clusterDomain: cluster.local
 
   langDetector:
+    # Deployment mode for language detector
+    # - "standalone": Runs as separate DaemonSet (default, more isolation)
+    # - "sidecar": Runs as sidecar in mw-kube-agent DaemonSet (fewer pods, less overhead)
+    deploymentMode: "standalone"  # Options: "standalone" or "sidecar"
     resources:
       limits:
         cpu: 200m
