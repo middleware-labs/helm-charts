@@ -40,12 +40,18 @@ spec:
         value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
+      - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
+        value: "true"
   nodejs:
     env:
       - name: OTEL_NODE_DISABLED_INSTRUMENTATIONS
         value: fs,dns,net
       - name: OTEL_PROPAGATORS
         value: b3,tracecontext,baggage
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://mw-service.{{ .Release.Namespace }}:9320
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: "http/protobuf"
   go:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT

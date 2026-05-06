@@ -84,10 +84,12 @@ kind: ConfigMap
 metadata:
   name: mw-lang-aggregator-restart-signal
   namespace: {{ .Release.Namespace | quote }}
+  annotations:
+    "helm.sh/hook": pre-install
   labels:
     app:  mw-lang-aggregator
     component: lang-aggregator
 data:
-  restart_timestamp: {{ now | date "2006-01-02T15:04:05Z" | quote }}
+  restart_timestamp: ""
 {{- end }}
 
