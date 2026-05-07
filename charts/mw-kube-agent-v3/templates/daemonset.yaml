@@ -15,21 +15,16 @@ spec:
         integrations.middleware.io/prometheus: "true"
         {{- end }}
     spec:
+      {{- with .Values.daemonset.tolerations }}
       tolerations:
-      # these tolerations are to have the daemonset runnable on control plane nodes
-      # remove them if your control plane nodes should not run pods
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
-      - operator: Exists
-        effect: NoSchedule
-      - operator: Exists
-        effect: NoExecute
-      {{- if .Values.providers.eks.fargate.enabled }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.daemonset.affinity .Values.providers.eks.fargate.enabled }}
       affinity:
+        {{- if .Values.daemonset.affinity }}
+        {{- toYaml .Values.daemonset.affinity | nindent 8 }}
+        {{- end }}
+        {{- if .Values.providers.eks.fargate.enabled }}
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -38,6 +33,11 @@ spec:
                 operator: NotIn
                 values:
                 - fargate
+        {{- end }}
+      {{- end }}
+      {{- with .Values.daemonset.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
 
       {{- if .Values.features.enableHostMonitoring }}
