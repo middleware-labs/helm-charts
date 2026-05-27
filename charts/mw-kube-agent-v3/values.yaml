@@ -35,13 +35,13 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.20.1
+  tag: 1.20.2
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.19.1
+  tag: 1.20.2
 
 syntheticMonitoring:
   name: synthetics
