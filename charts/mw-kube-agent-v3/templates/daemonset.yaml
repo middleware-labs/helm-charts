@@ -162,12 +162,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            {{- if .Values.mw.apiKeyFromExistingSecret.enabled }}
+            {{- if or .Values.global.mw.apiKeyFromExistingSecret.enabled .Values.mw.apiKeyFromExistingSecret.enabled }}
             - name: MW_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.mw.apiKeyFromExistingSecret.name }}
-                  key: {{ .Values.mw.apiKeyFromExistingSecret.key }}
+                  name: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.name .Values.mw.apiKeyFromExistingSecret.name }}
+                  key: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.key .Values.mw.apiKeyFromExistingSecret.key }}
             {{- else }}
             - name: MW_API_KEY
               valueFrom:

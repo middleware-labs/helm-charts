@@ -26,11 +26,15 @@ mw:
     langAggregator:
       repository: ghcr.io/middleware-labs/mw-lang-aggregator
       tag: 0.1.0
-  # Only used in case of lang detector 
+  # Only used in case of lang detector
   langAggregatorService:
     port: 8080
     targetPort: 8080
     type: ClusterIP
+  apiKeyFromExistingSecret:
+    enabled: false
+    name: ""
+    key: ""
 
 clusterDomain: cluster.local
 

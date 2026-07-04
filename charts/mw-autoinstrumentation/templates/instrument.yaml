@@ -37,7 +37,14 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://mw-service.{{ .Release.Namespace }}:9320
       - name: MW_API_KEY
+        {{- if or .Values.global.mw.apiKeyFromExistingSecret.enabled .Values.mw.apiKeyFromExistingSecret.enabled }}
+        valueFrom:
+          secretKeyRef:
+            name: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.name .Values.mw.apiKeyFromExistingSecret.name }}
+            key: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.key .Values.mw.apiKeyFromExistingSecret.key }}
+        {{- else }}
         value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+        {{- end }}
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
       - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
@@ -75,7 +82,14 @@ spec:
       - name: OTEL_EXPORTER_OTLP_PROTOCOL
         value: grpc
       - name: MW_API_KEY
+        {{- if or .Values.global.mw.apiKeyFromExistingSecret.enabled .Values.mw.apiKeyFromExistingSecret.enabled }}
+        valueFrom:
+          secretKeyRef:
+            name: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.name .Values.mw.apiKeyFromExistingSecret.name }}
+            key: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.key .Values.mw.apiKeyFromExistingSecret.key }}
+        {{- else }}
         value: {{ or .Values.global.mw.apiKey "XXXXXX" | quote }}
+        {{- end }}
       - name: OTEL_PROPAGATORS
         value: tracecontext,baggage,b3
 {{- end }}

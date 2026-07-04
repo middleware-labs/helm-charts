@@ -23,10 +23,17 @@ spec:
           - name: MW_TARGET
             value: {{ or .Values.global.mw.target "XXXXXX" | quote }}
           - name: MW_API_KEY
+            {{- if or .Values.global.mw.apiKeyFromExistingSecret.enabled .Values.mw.apiKeyFromExistingSecret.enabled }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.name .Values.mw.apiKeyFromExistingSecret.name }}
+                key: {{ coalesce .Values.global.mw.apiKeyFromExistingSecret.key .Values.mw.apiKeyFromExistingSecret.key }}
+            {{- else }}
             valueFrom:
               secretKeyRef:
                 name: middleware-secret
                 key: api-key
+            {{- end }}
           - name: MW_KUBE_CLUSTER_NAME
             value: {{ or .Values.global.clusterMetadata.name "unknown" | quote }}
           - name: MW_RELEASE_NAMESPACE

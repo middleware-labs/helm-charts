@@ -6,6 +6,10 @@ global:
   mw:
     target: ""
     apiKey: ""
+    apiKeyFromExistingSecret:
+      enabled: false
+      name: ""
+      key: ""
   clusterMetadata:
     name: ""
 
@@ -244,6 +248,10 @@ mw-autoinstrumentation:
       port: 8080
       targetPort: 8080
       type: ClusterIP
+    apiKeyFromExistingSecret:
+      enabled: false
+      name: ""
+      key: ""
 
   clusterMetadata:
     name: "unknown"
