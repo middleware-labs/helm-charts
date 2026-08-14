@@ -393,7 +393,7 @@ mw-autoinstrumentation:
           tag: "0.53.0"
         python:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
-          tag: "0.64b0-opsai"
+          tag: "0.64b0-opsai-record-exception"
         dotnet:
           repository: ""
           tag: ""
