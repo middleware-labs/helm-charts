@@ -389,8 +389,8 @@ mw-autoinstrumentation:
           repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java"
           tag: "2.19.0"
         nodejs:
-          repository: "ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs"
-          tag: "0.53.0"
+          repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-nodejs"
+          tag: "0.80.0-opsai-record-exception"
         python:
           repository: "ghcr.io/middleware-labs/opentelemetry-operator/autoinstrumentation-python"
           tag: "0.64b0-opsai-record-exception"
