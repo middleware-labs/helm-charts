@@ -62,7 +62,6 @@ jobs:
           [ -z "$SYN" ] || check "ghcr.io/middleware-labs/mw-synthetics:$SYN"
           [ -z "$OPS" ] || check "ghcr.io/middleware-labs/mw-opsai:$OPS"
 
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
