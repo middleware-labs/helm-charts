@@ -62,24 +62,17 @@ jobs:
           [ -z "$SYN" ] || check "ghcr.io/middleware-labs/mw-synthetics:$SYN"
           [ -z "$OPS" ] || check "ghcr.io/middleware-labs/mw-opsai:$OPS"
 
-      # App token (not GITHUB_TOKEN) so the PR it opens runs helm-lint.
-      - name: Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: master
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ secrets.RELEASE_CHAIN_TOKEN }}
 
       - name: Skip if a PR for these tags already exists
         id: existing
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_CHAIN_TOKEN }}
           BRANCH: ${{ steps.inputs.outputs.branch }}
         run: |
           PR_URL=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url')
@@ -146,7 +139,7 @@ jobs:
       - name: Open PR
         if: steps.update.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_CHAIN_TOKEN }}
           BRANCH: ${{ steps.inputs.outputs.branch }}
           SYN: ${{ steps.inputs.outputs.synthetics }}
           OPS: ${{ steps.inputs.outputs.opsai }}
