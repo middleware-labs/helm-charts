@@ -1,0 +1,189 @@
+# Stage 4 of the synthetics release chain:
+#   synthetics-agent tag -> mw-agent go.mod PR -> mw-synthetics/mw-opsai images
+#   -> [this] helm-charts PR -> (manual merge) -> helm-release.yaml publishes
+#
+# Bumps the mw-synthetics / mw-opsai image tags in mw-kube-agent-v3, bumps the
+# chart patch version, and opens a PR. Triggered by mw-agent's
+# synthetics-images.yaml, or manually from the Actions tab (Run workflow).
+name: Bump Agent Images (mw-kube-agent-v3)
+
+on:
+  repository_dispatch:
+    types: [agent-images-released]
+  workflow_dispatch:
+    inputs:
+      synthetics_tag:
+        description: 'mw-synthetics image tag (empty = leave unchanged)'
+        required: false
+        default: ''
+      opsai_tag:
+        description: 'mw-opsai image tag (empty = leave unchanged)'
+        required: false
+        default: ''
+
+concurrency:
+  group: bump-agent-images
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CHART_DIR: charts/mw-kube-agent-v3
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve inputs
+        id: inputs
+        env:
+          SYN: ${{ github.event.client_payload.synthetics_tag || github.event.inputs.synthetics_tag }}
+          OPS: ${{ github.event.client_payload.opsai_tag || github.event.inputs.opsai_tag }}
+        run: |
+          RE='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+          if [ -z "$SYN" ] && [ -z "$OPS" ]; then
+            echo "::error::Provide at least one of synthetics_tag / opsai_tag"; exit 1
+          fi
+          for t in "$SYN" "$OPS"; do
+            if [ -n "$t" ] && ! [[ "$t" =~ $RE ]]; then echo "::error::Invalid tag '$t'"; exit 1; fi
+          done
+          echo "synthetics=$SYN" >> "$GITHUB_OUTPUT"
+          echo "opsai=$OPS" >> "$GITHUB_OUTPUT"
+          echo "branch=bump/agent-images-${SYN:-x}-${OPS:-x}" >> "$GITHUB_OUTPUT"
+
+      # Never point the chart at an image that doesn't exist.
+      - name: Verify images exist
+        env:
+          SYN: ${{ steps.inputs.outputs.synthetics }}
+          OPS: ${{ steps.inputs.outputs.opsai }}
+        run: |
+          check() { docker manifest inspect "$1" >/dev/null || { echo "::error::$1 not found"; exit 1; }; }
+          [ -z "$SYN" ] || check "ghcr.io/middleware-labs/mw-synthetics:$SYN"
+          [ -z "$OPS" ] || check "ghcr.io/middleware-labs/mw-opsai:$OPS"
+
+      # App token (not GITHUB_TOKEN) so the PR it opens runs helm-lint.
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Skip if a PR for these tags already exists
+        id: existing
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ steps.inputs.outputs.branch }}
+        run: |
+          PR_URL=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url')
+          if [ -n "$PR_URL" ]; then
+            echo "PR already open: $PR_URL"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Targeted sed edits (yq -i would reformat the whole values file); yq verifies.
+      - name: Update image tags and chart version
+        id: update
+        if: steps.existing.outputs.skip == 'false'
+        env:
+          SYN: ${{ steps.inputs.outputs.synthetics }}
+          OPS: ${{ steps.inputs.outputs.opsai }}
+        run: |
+          VALUES="$CHART_DIR/values.yaml"
+          CHART="$CHART_DIR/Chart.yaml"
+          OLD_SYN=$(yq '.syntheticMonitoring.tag' "$VALUES")
+          OLD_OPS=$(yq '.opsai.tag' "$VALUES")
+
+          set_tag() {  # $1 = top-level key, $2 = new tag
+            sed -i "/^$1:/,/^[^[:space:]]/ s/^  tag: .*/  tag: $2/" "$VALUES"
+          }
+          [ -z "$SYN" ] || set_tag syntheticMonitoring "$SYN"
+          [ -z "$OPS" ] || set_tag opsai "$OPS"
+
+          [ -z "$SYN" ] || [ "$(yq '.syntheticMonitoring.tag' "$VALUES")" = "$SYN" ] || { echo "::error::synthetics tag not updated"; exit 1; }
+          [ -z "$OPS" ] || [ "$(yq '.opsai.tag' "$VALUES")" = "$OPS" ] || { echo "::error::opsai tag not updated"; exit 1; }
+
+          if git diff --quiet -- "$VALUES"; then
+            echo "Chart already uses these tags, nothing to do"
+            echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          OLD_CHART=$(yq '.version' "$CHART")
+          IFS=. read -r MAJ MIN PAT <<< "$OLD_CHART"
+          NEW_CHART="$MAJ.$MIN.$((PAT + 1))"
+          sed -i "s/^version: .*/version: $NEW_CHART/" "$CHART"
+
+          {
+            echo "changed=true"
+            echo "old_syn=$OLD_SYN"; echo "old_ops=$OLD_OPS"
+            echo "old_chart=$OLD_CHART"; echo "new_chart=$NEW_CHART"
+          } >> "$GITHUB_OUTPUT"
+          git diff
+
+      - name: Set up Helm
+        if: steps.update.outputs.changed == 'true'
+        uses: azure/setup-helm@v4
+
+      - name: Render chart
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          helm repo add middleware https://helm.middleware.io
+          helm dependency build "$CHART_DIR"
+          helm template test "$CHART_DIR" \
+            --set syntheticMonitoring.enabled=true --set opsai.enabled=true \
+            --set mw.apiKey=dummy --set mw.target=https://example.middleware.io:443 \
+            --set clusterMetadata.name=ci > /dev/null
+
+      - name: Open PR
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ steps.inputs.outputs.branch }}
+          SYN: ${{ steps.inputs.outputs.synthetics }}
+          OPS: ${{ steps.inputs.outputs.opsai }}
+          OLD_SYN: ${{ steps.update.outputs.old_syn }}
+          OLD_OPS: ${{ steps.update.outputs.old_ops }}
+          OLD_CHART: ${{ steps.update.outputs.old_chart }}
+          NEW_CHART: ${{ steps.update.outputs.new_chart }}
+          SYN_AGENT: ${{ github.event.client_payload.synthetics_agent_version }}
+          MW_SHA: ${{ github.event.client_payload.mw_agent_sha }}
+          SOURCE: ${{ github.event.client_payload.source_url }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add "$CHART_DIR/values.yaml" "$CHART_DIR/Chart.yaml"
+          git commit -m "mw-kube-agent-v3 $NEW_CHART: bump synthetics ${SYN:-$OLD_SYN}, opsai ${OPS:-$OLD_OPS}"
+          git push origin "$BRANCH"
+
+          BODY="Bumps \`mw-kube-agent-v3\` chart \`$OLD_CHART\` → \`$NEW_CHART\`.
+
+          | Image | From | To |
+          |---|---|---|
+          | \`mw-synthetics\` | \`$OLD_SYN\` | \`${SYN:-$OLD_SYN}\` |
+          | \`mw-opsai\` | \`$OLD_OPS\` | \`${OPS:-$OLD_OPS}\` |
+          "
+          [ -z "$SYN_AGENT" ] || BODY="$BODY
+          synthetics-agent: [\`$SYN_AGENT\`](https://github.com/middleware-labs/synthetics-agent/releases/tag/$SYN_AGENT)"
+          [ -z "$MW_SHA" ] || BODY="$BODY
+          mw-agent commit: middleware-labs/mw-agent@$MW_SHA"
+          [ -z "$SOURCE" ] || BODY="$BODY
+          Source: $SOURCE"
+          BODY="$BODY
+
+          **Merging publishes chart \`$NEW_CHART\` to helm.middleware.io** (helm-release.yaml).
+
+          _Opened automatically by \`bump-agent-images.yaml\`._"
+
+          gh pr create --base master --head "$BRANCH" \
+            --title "mw-kube-agent-v3 $NEW_CHART: bump synthetics/opsai images" \
+            --body "$BODY"
