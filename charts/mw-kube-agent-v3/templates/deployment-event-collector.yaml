@@ -1,0 +1,93 @@
+{{- if .Values.hpa.enabled }}
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.eventCollector.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mw-kube-agent.labels" . | nindent 4 }}
+spec:
+  # Cluster-scoped components must run on exactly one replica, otherwise every
+  # event and cluster-level metric would be reported once per pod.
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "eventCollector.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "eventCollector.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.eventCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventCollector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: mw-event-collector-otel-config-volume
+          configMap:
+            name: {{ .Values.eventCollector.configMap.name }}
+            items:
+              - key: otel-config
+                path: otel-config-event-collector.yaml
+      containers:
+        - args:
+            - mw-agent
+            - start
+            - --otel-config-file
+            - /app/otel-config-event-collector.yaml
+          volumeMounts:
+            - name: mw-event-collector-otel-config-volume
+              mountPath: /app
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MW_TARGET
+              value: {{ or .Values.global.mw.target .Values.mw.target | quote }}
+            - name: MW_KUBE_CLUSTER_NAME
+              value: {{ or .Values.global.clusterMetadata.name .Values.clusterMetadata.name | quote }}
+            - name: MW_AGENT_INTERNAL_METRICS_PORT
+              value: {{ .Values.mw.agentInternalMetricsPort | quote }}
+            - name: MW_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: MW_AGENT_FEATURES_INFRA_MONITORING
+              value: {{ .Values.mw.agentFeatures.infraMonitoring | quote }}
+            - name: MW_AGENT_SELF_PROFILING
+              value: {{ .Values.mw.selfProfiling | quote }}
+            - name: MW_PROFILING_SERVER_URL
+              value: {{ .Values.mw.profilingServerUrl | quote }}
+            - name: MW_HPA_MODE
+              value: {{ .Values.hpa.enabled | quote }}
+            {{- if .Values.mw.apiKeyFromExistingSecret.enabled }}
+            - name: MW_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mw.apiKeyFromExistingSecret.name }}
+                  key: {{ .Values.mw.apiKeyFromExistingSecret.key }}
+            {{- else }}
+            - name: MW_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: middleware-secret
+                  key: api-key
+            {{- end }}
+          resources:
+          {{- toYaml .Values.eventCollector.resources | nindent 12 }}
+          image: "{{ or .Values.image.repository .Values.agentImage.repository }}:{{ or .Values.image.tag .Values.agentImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ or .Values.image.pullPolicy .Values.agentImage.pullPolicy }}
+          name: {{ .Chart.Name }}
+      restartPolicy: Always
+      {{- if .Values.priorityClass.create }}
+      priorityClassName: {{ include "mw-kube-agent.priorityClassName" . }}
+      {{- end }}
+      serviceAccountName: {{ include "mw-kube-agent.serviceAccountName" . }}
+{{- end }}

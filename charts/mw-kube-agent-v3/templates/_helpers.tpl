@@ -51,6 +51,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Selector labels for the Event Collector (HPA mode)
+*/}}
+{{- define "eventCollector.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "mw-kube-agent.name" . }}-event-collector
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Selector labels for OpsAI
 */}}
 {{- define "opsai.selectorLabels" -}}

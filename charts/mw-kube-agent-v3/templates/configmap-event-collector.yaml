@@ -1,0 +1,13 @@
+{{- if .Values.hpa.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.eventCollector.configMap.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mw-kube-agent.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install
+data:
+  otel-config: |
+{{- end }}

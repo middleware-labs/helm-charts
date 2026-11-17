@@ -35,13 +35,13 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.21.0
+  tag: 1.21.800
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.21.0
+  tag: 1.21.800
 
 syntheticMonitoring:
   name: synthetics
@@ -171,6 +171,47 @@ deployment:
       memory: "1024Mi" # Default memory limit
   configMap:
     name: mw-deployment-otel-config
+
+# HPA mode. When enabled, the config updater splits the agent components
+# across two workloads instead of putting them all on mw-cluster-agent:
+#   - mw-event-collector (below) receives the cluster-scoped components
+#     (events / cluster objects), so they stay on a single replica.
+#   - mw-cluster-agent keeps the remaining components.
+# The split itself is decided by the config updater at runtime - the chart
+# only creates the workloads and tells the updater which mode it is in via
+# MW_HPA_MODE. When disabled, mw-cluster-agent behaves exactly as before and
+# mw-event-collector is not created.
+hpa:
+  enabled: false
+
+# Dedicated deployment that receives the cluster-scoped components when
+# hpa.enabled is true.
+eventCollector:
+  name: mw-event-collector
+  nodeSelector: {}
+  affinity: {}
+  tolerations:
+    # these tolerations are to have the deployment runnable on control plane nodes
+    # remove them if your control plane nodes should not run pods
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+    - operator: Exists
+      effect: NoSchedule
+    - operator: Exists
+      effect: NoExecute
+  resources:
+    requests:
+      cpu: "200m" # Default CPU request
+      memory: "256Mi" # Default memory request
+    limits:
+      cpu: "1000m" # Default CPU limit
+      memory: "1024Mi" # Default memory limit
+  configMap:
+    name: mw-event-collector-otel-config
 
 priorityClass:
   # Specifies whether a priorityClass should be created

@@ -51,6 +51,16 @@ spec:
               value: {{ .Values.deployment.name | quote }}
             - name: MW_DAEMONSET_NAME
               value: {{ .Values.daemonset.name | quote }}
+            # In HPA mode the updater splits the agent components across the
+            # cluster agent and the dedicated event collector below.
+            - name: MW_HPA_MODE
+              value: {{ .Values.hpa.enabled | quote }}
+            {{- if .Values.hpa.enabled }}
+            - name: MW_EVENT_COLLECTOR_NAME
+              value: {{ .Values.eventCollector.name | quote }}
+            - name: MW_EVENT_COLLECTOR_CONFIGMAP_NAME
+              value: {{ .Values.eventCollector.configMap.name | quote }}
+            {{- end }}
           image: "{{ .Values.configUpdaterImage.repository }}:{{ .Values.configUpdaterImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.configUpdaterImage.pullPolicy }}
           name: mw-kube-agent-config-updater
