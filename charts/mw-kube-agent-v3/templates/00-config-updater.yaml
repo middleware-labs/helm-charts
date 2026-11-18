@@ -45,6 +45,11 @@ spec:
               value: {{ .Values.mw.configCheckInterval }}
             - name: MW_ENABLE_DATADOG_RECEIVER
               value: {{ .Values.mw.enableDatadogReceiver | quote }}
+            {{- if .Values.cloudNetworkMonitoring.enabled }}
+            # Asks the backend for a daemonset config with the obi receiver.
+            - name: MW_AGENT_FEATURES_CLOUD_NETWORK_MONITORING
+              value: "true"
+            {{- end }}
             - name: MW_PROVIDER
               value: {{ include "mw-kube-agent.provider" . | quote }}
             - name: MW_DEPLOYMENT_NAME

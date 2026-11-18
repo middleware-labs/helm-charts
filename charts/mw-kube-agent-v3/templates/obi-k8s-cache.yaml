@@ -1,0 +1,83 @@
+{{- if and .Values.cloudNetworkMonitoring.enabled .Values.cloudNetworkMonitoring.k8sCache.enabled }}
+{{- $cache := .Values.cloudNetworkMonitoring.k8sCache }}
+# Kubernetes metadata cache for cloud network monitoring: it watches pods, nodes and services
+# once, and the obi receiver in every mw-agent daemonset pod reads them from it.
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ $cache.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mw-kube-agent.labels" . | nindent 4 }}
+spec:
+  replicas: {{ $cache.replicas }}
+  selector:
+    matchLabels:
+      {{- include "obiK8sCache.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "obiK8sCache.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with $cache.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $cache.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $cache.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: obi-k8s-cache
+          {{- if $cache.image.digest }}
+          image: "{{ $cache.image.repository }}@{{ $cache.image.digest }}"
+          {{- else }}
+          image: "{{ $cache.image.repository }}:{{ $cache.image.tag }}"
+          {{- end }}
+          imagePullPolicy: {{ $cache.image.pullPolicy }}
+          env:
+            - name: OTEL_EBPF_K8S_CACHE_PORT
+              value: {{ $cache.port | quote }}
+          ports:
+            - name: grpc
+              containerPort: {{ $cache.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml $cache.resources | nindent 12 }}
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            # the image is a static binary on scratch, with no user of its own
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+      restartPolicy: Always
+      {{- if .Values.priorityClass.create }}
+      priorityClassName: {{ include "mw-kube-agent.priorityClassName" . }}
+      {{- end }}
+      serviceAccountName: {{ include "mw-kube-agent.serviceAccountName" . }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ $cache.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mw-kube-agent.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "obiK8sCache.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ $cache.port }}
+      targetPort: grpc
+      protocol: TCP
+{{- end }}

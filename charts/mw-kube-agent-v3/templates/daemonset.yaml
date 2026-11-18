@@ -1,3 +1,6 @@
+{{- if and .Values.cloudNetworkMonitoring.enabled .Values.providers.gke.autopilot }}
+{{- fail "cloudNetworkMonitoring.enabled is not supported on GKE Autopilot: it needs a privileged daemonset" }}
+{{- end }}
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
@@ -40,7 +43,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- if .Values.features.enableHostMonitoring }}
+      {{- /* CNM sees the node's traffic and DNS from the node's network namespace, and needs
+      the node's PIDs to find it and to name its tracefs probes uniquely per node. */}}
+      {{- if or .Values.features.enableHostMonitoring .Values.cloudNetworkMonitoring.enabled }}
       hostNetwork: true
       hostPID: true
       {{- else if and ((index .Values "mw-autoinstrumentation").enabled) (eq (index .Values "mw-autoinstrumentation").mode "auto") (eq (index .Values "mw-autoinstrumentation").langDetector.deploymentMode "sidecar") }}
@@ -73,6 +78,11 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
+      {{- end }}
+      {{- if .Values.cloudNetworkMonitoring.enabled }}
+      - name: tracefs
+        hostPath:
+          path: /sys/kernel/tracing
       {{- end }}
       {{- if and ((index .Values "mw-autoinstrumentation").enabled) (eq (index .Values "mw-autoinstrumentation").mode "auto") (eq (index .Values "mw-autoinstrumentation").langDetector.deploymentMode "sidecar") }}
       - name: proc
@@ -162,6 +172,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            {{- if .Values.cloudNetworkMonitoring.enabled }}
+            - name: MW_AGENT_FEATURES_CLOUD_NETWORK_MONITORING
+              value: "true"
+            # Set even when empty (no cache): the obi receiver config references it.
+            - name: MW_OBI_K8S_CACHE_ADDRESS
+              value: {{ include "obiK8sCache.address" . | quote }}
+            {{- end }}
             {{- if .Values.mw.apiKeyFromExistingSecret.enabled }}
             - name: MW_API_KEY
               valueFrom:
@@ -181,6 +198,12 @@ spec:
           imagePullPolicy: {{ or .Values.image.pullPolicy .Values.agentImage.pullPolicy }}
           name: {{ .Chart.Name }}
           securityContext:
+            {{- if .Values.cloudNetworkMonitoring.enabled }}
+            # The obi receiver loads eBPF programs, attaches kprobes through tracefs and
+            # opens raw sockets in the node's network namespace.
+            privileged: true
+            runAsUser: 0
+            {{- else }}
             privileged: false
             allowPrivilegeEscalation: false
             {{- if and (not .Values.features.enableHostMonitoring) (not .Values.providers.gke.autopilot) }}
@@ -191,6 +214,7 @@ spec:
             capabilities:
               drop:
                 - ALL
+            {{- end }}
             readOnlyRootFilesystem: true
           volumeMounts:
           - name: mw-daemonset-otel-config-volume
@@ -212,6 +236,10 @@ spec:
           - mountPath: /var/lib/docker/containers
             name: varlibdockercontainers
             readOnly: true
+          {{- end }}
+          {{- if .Values.cloudNetworkMonitoring.enabled }}
+          - mountPath: /sys/kernel/tracing
+            name: tracefs
           {{- end }}
       restartPolicy: Always
       {{- if .Values.priorityClass.create }}
