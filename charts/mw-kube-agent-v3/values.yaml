@@ -35,13 +35,13 @@ image:
   repository: ghcr.io/middleware-labs/mw-kube-agent
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.21.5
+  tag: 2.0.2
 
 configUpdaterImage:
   repository: ghcr.io/middleware-labs/mw-kube-agent-config-updater
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1.21.5
+  tag: 2.0.2
 
 syntheticMonitoring:
   name: synthetics
@@ -216,6 +216,44 @@ features:
   enablePrometheusTargetAllocator: false
   # For collecting Kubernetes custom resources
   enableCustomResourceCollection: true
+
+# Cloud network monitoring (CNM): the mw-agent daemonset runs the eBPF obi receiver, which
+# reports traffic, TCP connection, retransmit and RTT metrics and DNS lookups between pods,
+# services and external endpoints. Needs Linux nodes with kernel 5.8+ (4.18 on RHEL) and BTF,
+# and an agent image with the obi receiver (2.0.1+).
+# When enabled, the agent container in the daemonset runs privileged as root, in the node's
+# network and PID namespaces, with the node's tracefs mounted. Not supported on GKE Autopilot.
+cloudNetworkMonitoring:
+  enabled: false
+  # Kubernetes metadata cache. Without it, the obi receiver on every node watches pods,
+  # services, nodes and replicasets in the API server. With it, the cache does that once and
+  # the nodes read from it, which lowers the API server load in large clusters.
+  # The agent reads the cache address from MW_OBI_K8S_CACHE_ADDRESS.
+  # On with cloudNetworkMonitoring.enabled; set k8sCache.enabled=false to run without it.
+  k8sCache:
+    enabled: true
+    name: mw-obi-k8s-cache
+    replicas: 1
+    port: 50055
+    image:
+      # Our copy of upstream's opentelemetry-ebpf-k8s-cache image, built from OBI main
+      # (2026-11-16, f3cfa21): its cache protocol matches the OBI inside mw-agent. Release
+      # v1.0.0 lacks the Service selector and finished Pod fields the agent uses.
+      # When digest is set, it is used instead of tag.
+      repository: ghcr.io/middleware-labs/obi-k8s-cache
+      tag: f3cfa21
+      digest: sha256:d0f0d963f98410f41bedcb65834e987109da2201d94aeb513da194f54d119b9c
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
 
 mw-autoinstrumentation:
   enabled: false

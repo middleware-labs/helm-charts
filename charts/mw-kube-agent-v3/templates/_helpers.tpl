@@ -67,6 +67,23 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Selector labels for the CNM Kubernetes metadata cache
+*/}}
+{{- define "obiK8sCache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "mw-kube-agent.name" . }}-obi-k8s-cache
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+host:port of the CNM Kubernetes metadata cache, empty when the cache is disabled
+*/}}
+{{- define "obiK8sCache.address" -}}
+{{- if and .Values.cloudNetworkMonitoring.enabled .Values.cloudNetworkMonitoring.k8sCache.enabled -}}
+{{ .Values.cloudNetworkMonitoring.k8sCache.name }}.{{ .Release.Namespace }}.svc:{{ .Values.cloudNetworkMonitoring.k8sCache.port }}
+{{- end -}}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "mw-kube-agent.serviceAccountName" -}}
